@@ -37,7 +37,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import axios from 'axios';
 
+axios.get("http://localhost:8050/test1").then(response => {
+  console.log(response.data);
+})
 // 定义 DiaryData 类型
 interface DiaryData {
   id: number;
@@ -76,12 +80,16 @@ const diaryData = ref<DiaryData>({
 onMounted(() => {
   const diaryId = Number(route.params.id);
   diaryData.value = fetchDiaryData(diaryId);
+
 });
 
 // 处理目的地点击事件
 const handleDestinationClick = () => {
   // 这里暂时跳转到 #，后续可根据实际情况定义跳转路径
   router.push('#');
+  axios.get("http://localhost:8050/test1").then(response => {
+    console.log(response.data);
+  })
 };
 </script>
 
