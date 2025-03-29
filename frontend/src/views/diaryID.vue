@@ -90,6 +90,9 @@ const handleDestinationClick = () => {
   axios.get("http://localhost:8050/test1").then(response => {
     console.log(response.data);
   })
+  axios.post(`http://localhost:8050/sign_up_${"wan"}${"wan"}`).then(response => {
+    console.log(response.data);
+  })
 };
 </script>
 

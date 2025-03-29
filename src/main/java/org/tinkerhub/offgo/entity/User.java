@@ -17,6 +17,10 @@
 package org.tinkerhub.offgo.entity;
 
 import jakarta.persistence.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.tinkerhub.offgo.Repository.UserRepository;
+import org.tinkerhub.offgo.mysql_service.User_service;
 
 /**
  * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>
@@ -24,13 +28,11 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "users")
 public class User {
-
-    static int count = 0;
     @Column(name = "name")
     private String username;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer ID;
+    private int ID;
     @Column(name = "password")
     private String password;
 
@@ -65,10 +67,9 @@ public class User {
         return ID;
     }
 
-    public User(String name, String password) {
+    public User(String name, String password,int ID) {
         this.username = name;
         this.password = password;
-        this.ID = count;
-        count++;
+        this.ID = ID;
     }
 }
