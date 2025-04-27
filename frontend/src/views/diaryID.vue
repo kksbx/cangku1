@@ -82,18 +82,15 @@ interface DiaryData {
 //     rating: response.data.rating || 0
 //   };
 // };
-const fetchDiaryData = (diaryId: number): DiaryData => {
-  // 这里返回模拟数据，实际应通过 API 获取
-  return {
-    id: diaryId,
-    title: '示例日记标题',
-    author: '示例作者',
-    images: ['https://picsum.photos/id/100/300/200', 'https://picsum.photos/id/101/300/200'],
-    content: '这是示例日记的具体内容。',
-    hot: 100,
-    rating: 4,
-    destination: '巴黎'
-  };
+const fetchDiaryData = async (diaryId: number) => {
+  try {
+    const response = await axios.get(`/get/diary/${diaryId}`);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error('获取日记详情失败:', error);
+    return null;
+  }
 };
 const router = useRouter();
 const route = useRoute();

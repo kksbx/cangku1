@@ -12,6 +12,7 @@ import org.tinkerhub.offgo.mysql_service.Diary_service;
 import org.tinkerhub.offgo.mysql_service.User_service;
 
 import java.io.*;
+import java.util.List;
 import java.util.Random;
 
 @RestController
@@ -29,16 +30,16 @@ public class diarycontroller {
     private static final String IMAGE_STORAGE_DIR = "src/main/resources/static/images/diary/";
 
     @RequestMapping("/savediary_withoutimage")
-    public boolean savediary_without(@RequestParam String title, @RequestParam String description, @RequestParam String content,@RequestParam int userID) {
+    public boolean savediary_without(@RequestParam String title, @RequestParam String description, @RequestParam String content,@RequestParam int userID,@RequestParam String destination) {
         int contentID = diaryService.find_content_max_id() + 1;
         ContentEntity contentEntity = new ContentEntity(contentID, content);
         diaryService.saveContent(contentEntity);
         int diaryID = diaryService.find_image_max_id() + 1;
-        diaryService.saveDiary(new diary(diaryID,title, userID, description, contentID));
+        diaryService.saveDiary(new diary(diaryID,title, userID, description, contentID,destination));
         return true;
     }
     @RequestMapping("/savediary_withimage")
-    public boolean savediary_with(@RequestParam String title, @RequestParam String description, @RequestParam String content, @RequestParam int userID,  @RequestParam int image_num) {
+    public boolean savediary_with(@RequestParam String title, @RequestParam String description, @RequestParam String content, @RequestParam int userID,  @RequestParam int image_num, @RequestParam String destination) {
         int contentID = diaryService.find_content_max_id() + 1;
         ContentEntity contentEntity = new ContentEntity(contentID, content);
         diaryService.saveContent(contentEntity);
@@ -50,7 +51,7 @@ public class diarycontroller {
             arr[i]=imageID;
             imageID++;
         }
-        diary diary = new diary(diaryID, title, userID, description, contentID,arr);
+        diary diary = new diary(diaryID, title, userID, description, contentID,arr,destination);
         diaryService.saveDiary(diary);
         return true;
     }
@@ -115,7 +116,7 @@ public class diarycontroller {
             arr[i]=imageID;
             imageID++;
         }
-        diary diary = new diary(diaryID, title, userID, description, contentID,arr);
+        diary diary = new diary(diaryID, title, userID, description, contentID,arr,"Hongko");
         diaryService.saveDiary(diary);
         return "success";
     }
@@ -184,18 +185,23 @@ public class diarycontroller {
                 int imageID = diaryService.find_image_max_id() + 1;
                 ImageEntity imageEntity = new ImageEntity(imageID, file.getAbsolutePath());
                 diaryService.saveImage(imageEntity);
-
+                String destination = generateRandomDestination();
                 int[] arr = {imageID};
-                String title = "日记 - " + file.getName();
+                String title = "日记 - " + i;
                 String description = "关于 " + file.getName() + " 的日记";
                 int userID = 1; // 假设用户 ID 为 1
-                String destination = generateRandomDestination();
-                diary diary = new diary(diaryID, title, userID, description, contentID, arr);
+                diary diary = new diary(diaryID, title, userID, description, contentID, arr,destination);
                 diaryService.saveDiary(diary);
             }
         }
         return "所有图片的日记已生成";
     }
-
-
+    @RequestMapping("/get/diaries")
+    public List<diary> getdiarys() {
+        return diaryService.getAllDiaries();
+    }
+    @RequestMapping("/get/diary/{ID}")
+    public diary getdiarybyID(@PathVariable int ID) {
+        return diaryService.findById(ID);
+    }
 }

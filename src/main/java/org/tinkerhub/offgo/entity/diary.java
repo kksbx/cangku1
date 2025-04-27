@@ -11,17 +11,21 @@ public class diary {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    private String title;
+    private String description;
+    private int[] image;
+    private Integer hot;
+    private String destination;
     private double rating;
     private int rate_sum;
     private int rate_counts;
-    private Integer hot;
-    private String title;
+
     private int userID;
-    private String description;
+
     private int content;
-    private int[] image;
+
     public diary() {}
-    public diary(Integer id, String title, int user, String description, int content, int[] image) {
+    public diary(Integer id, String title, int user, String description, int content, int[] image,String destination) {
         this.id = id;
         this.title = title;
         this.userID = user;
@@ -32,8 +36,9 @@ public class diary {
         this.rate_sum = 0;
         this.rate_counts = 0;
         this.hot = 0;
+        this.destination = destination;
     }
-    public diary(Integer id, String title, int user, String description, int content) {
+    public diary(Integer id, String title, int user, String description, int content,String destination) {
         this.id = id;
         this.title = title;
         this.hot=0;
@@ -44,5 +49,6 @@ public class diary {
         this.description = description;
         this.content = content;
         this.image=new int[0];
+        this.destination=destination;
     }
 }

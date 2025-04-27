@@ -30,6 +30,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import DiarySearchBar from '@/components/DiarySearchBar.vue';
 import UserPanel from '@/components/UserPanel.vue';
+import axios from "axios";
 
 interface DiaryCard {
   id: number;
@@ -51,46 +52,18 @@ const searchParams = ref({
   sortField: 'hot',
   sortOrder: 'desc'
 });
-
-// 获取数据
-// 使用模拟数据替代从后端获取
 const fetchCards = async () => {
-  // 模拟数据
-  const mockData = [
-    {
-      id: 1,
-      title: '旅行日记1',
-      description: '这是一次精彩的旅行，充满了惊喜和美好的回忆。',
-      images: ['https://picsum.photos/id/100/300/200', 'https://picsum.photos/id/101/300/200'],
-      hot: 100,
-      rating: 4,
-      destination: '巴黎'
-    },
-    {
-      id: 2,
-      title: '美食日记',
-      description: '品尝了各种美味的食物，每一口都令人陶醉。',
-      images: ['https://picsum.photos/id/102/300/200', 'https://picsum.photos/id/103/300/200'],
-      hot: 80,
-      rating: 3,
-      destination: '东京'
-    },
-    {
-      id: 3,
-      title: '户外探险日记',
-      description: '挑战自我，探索大自然的奥秘。',
-      images: ['https://picsum.photos/id/104/300/200', 'https://picsum.photos/id/105/300/200'],
-      hot: 120,
-      rating: 4,
-      destination: '新西兰'
-    }
-  ];
-
-  cards.value = mockData;
+  try {
+    const response = await axios.get('http://localhost:8050/get/diaries', {
+      params: searchParams.value
+    });
+    console.log(response.data);
+    cards.value = response.data;
+  } catch (error) {
+    console.error('获取日记数据失败:', error);
+  }
 };
-
-// 处理搜索
-//与后端接轨
+//搜索
 const handleSearch = (params: { keyword: string; type: string }) => {
   searchParams.value.keyword = params.keyword;
   searchParams.value.searchType = params.type;
@@ -111,17 +84,11 @@ const handleSortChange = (params: {
 //后端替代
 const handleCardClick = async (cardId: number) => {
   try {
-    // 发送点击事件（模拟）
-    // await fetch(`/api/cards/${cardId}/click`, {
-    //   method: 'POST'
-    // })
-
-    // 本地更新热度（+1）
     cards.value = cards.value.map(card =>
       card.id === cardId? { ...card, hot: card.hot + 1 } : card
     );
-
-    router.push(`/diary/${cardId}`);
+    console.log(cardId);
+    //router.push(`/diary/${cardId}`);
   } catch (error) {
     console.error('点击记录失败:', error);
   }
