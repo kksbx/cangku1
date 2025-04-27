@@ -10,6 +10,8 @@ import org.tinkerhub.offgo.entity.ContentEntity;
 import org.tinkerhub.offgo.entity.ImageEntity;
 import org.tinkerhub.offgo.entity.diary;
 
+
+
 @Service
 public class Diary_service {
     @Autowired
@@ -24,9 +26,17 @@ public class Diary_service {
 
     }
     public int find_content_max_id() {
+        if (contentRepository.findAll().isEmpty()) {
+            return 0;
+        }
+
         return contentRepository.findMaxID();
     }
     public int find_image_max_id() {
+        if (imageRepository.findAll().isEmpty()) {
+        return 0;
+    }
+
         return imageRepository.findMaxID();
     }
     public diary findById(int id) {
@@ -47,4 +57,13 @@ public class Diary_service {
     public ContentEntity saveContent(ContentEntity contentEntity) {
         return contentRepository.save(contentEntity);
     }
+    public void cleanDiaryData() {
+        // 清空 diary 表的数据
+        diayRepository.deleteAll();
+        // 清空 ContentEntity 表的数据
+        contentRepository.deleteAll();
+        // 清空 ImageEntity 表的数据
+        imageRepository.deleteAll();
+    }
+
 }

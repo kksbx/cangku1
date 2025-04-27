@@ -30,6 +30,28 @@
         <h3>日记内容</h3>
         <p>{{ diaryData.content }}</p>
       </div>
+      <!-- 显示热度 -->
+      <div class="diary-hot">
+        <h3>热度: {{ diaryData.hot }}</h3>
+      </div>
+      <!-- 评分板块 -->
+      <div class="diary-rating">
+        <h3>评分</h3>
+        <div class="star-rating">
+          <span
+            v-for="(star, index) in 5"
+            :key="index"
+            :class="{ 'star-filled': hasRated ? index < submittedRating : index < hoverRating }"
+            @mouseenter="handleMouseEnter(index + 1)"
+            @mouseleave="handleMouseLeave"
+            @click="submitRating(index + 1)"
+            :style="{ cursor: hasRated ? 'default' : 'pointer' }"
+          >★</span>
+        </div>
+        <div v-if="hasRated">
+          <p>您已评分为: {{ submittedRating }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -39,9 +61,6 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
-axios.get("http://localhost:8050/test1").then(response => {
-  console.log(response.data);
-})
 // 定义 DiaryData 类型
 interface DiaryData {
   id: number;
@@ -50,9 +69,19 @@ interface DiaryData {
   images: string[];
   content: string;
   destination: string;
+  hot: number;
+  rating: number;
 }
 
-// 模拟从后端获取日记数据的函数，实际使用时需替换为真实的 API 调用
+// // 模拟从后端获取日记数据的函数，实际使用时需替换为真实的 API 调用
+// const fetchDiaryData = async (diaryId: number): Promise<DiaryData> => {
+//   const response = await axios.get(`http://localhost:8050/getdiary/${diaryId}`);
+//   return {
+//     ...response.data,
+//     hot: response.data.hot || 0,
+//     rating: response.data.rating || 0
+//   };
+// };
 const fetchDiaryData = (diaryId: number): DiaryData => {
   // 这里返回模拟数据，实际应通过 API 获取
   return {
@@ -61,10 +90,11 @@ const fetchDiaryData = (diaryId: number): DiaryData => {
     author: '示例作者',
     images: ['https://picsum.photos/id/100/300/200', 'https://picsum.photos/id/101/300/200'],
     content: '这是示例日记的具体内容。',
+    hot: 100,
+    rating: 4,
     destination: '巴黎'
   };
 };
-
 const router = useRouter();
 const route = useRoute();
 // 使用具体的 DiaryData 类型
@@ -74,25 +104,87 @@ const diaryData = ref<DiaryData>({
   author: '',
   images: [],
   content: '',
-  destination: ''
+  destination: '',
+  hot: 0,
+  rating: 0
 });
 
-onMounted(() => {
-  const diaryId = Number(route.params.id);
-  diaryData.value = fetchDiaryData(diaryId);
+const hoverRating = ref(0);
+const submittedRating = ref(0);
+const hasRated = ref(false);
 
+onMounted(async () => {
+  const diaryId = Number(route.params.id);
+  diaryData.value = await fetchDiaryData(diaryId);
+  // 进入页面后增加热度
+  await increaseHot();
+  // 检查用户是否已经评分
+  await checkIfRated(diaryId);
 });
 
 // 处理目的地点击事件
 const handleDestinationClick = () => {
-  // 这里暂时跳转到 #，后续可根据实际情况定义跳转路径
   router.push('#');
   axios.get("http://localhost:8050/test1").then(response => {
     console.log(response.data);
-  })
+  });
   axios.post(`http://localhost:8050/sign_up_${"wan"}${"wan"}`).then(response => {
     console.log(response.data);
-  })
+  });
+};
+
+// 增加热度
+const increaseHot = async () => {
+  const diaryId = Number(route.params.id);
+  try {
+    //await axios.post(`http://localhost:8050/diary/${diaryId}/add_hot`);
+    diaryData.value.hot++;
+  } catch (error) {
+    console.error('增加热度失败:', error);
+  }
+};
+
+// 检查用户是否已经评分
+const checkIfRated = async (diaryId: number) => {
+  try {
+    //const response = await axios.get(`http://localhost:8050/diary/${diaryId}/check-rated`);
+    //hasRated.value = response.data.hasRated;
+    // if (hasRated.value) {
+    //   submittedRating.value = response.data.rating;
+    // }
+    hasRated.value = false;
+  } catch (error) {
+    console.error('检查评分状态失败:', error);
+  }
+};
+
+// 鼠标悬停处理
+const handleMouseEnter = (rating: number) => {
+  if (!hasRated.value) {
+    hoverRating.value = rating;
+  }
+};
+
+// 鼠标离开处理
+const handleMouseLeave = () => {
+  if (!hasRated.value) {
+    hoverRating.value = 0;
+  }
+};
+
+// 提交评分
+const submitRating = async (rating: number) => {
+  const diaryId = Number(route.params.id);
+  if (!hasRated.value) {
+    try {
+      //await axios.post(`http://localhost:8050/diary/${diaryId}/rating`, { rating });
+      diaryData.value.rating = rating;
+      submittedRating.value = rating;
+      hasRated.value = true;
+    } catch (error) {
+      console.error('提交评分失败:', error);
+    }
+  }
 };
 </script>
 
@@ -125,7 +217,9 @@ const handleDestinationClick = () => {
 .diary-author h3,
 .diary-destination h3,
 .diary-images h3,
-.diary-content h3 {
+.diary-content h3,
+.diary-hot h3,
+.diary-rating h3 {
   margin-bottom: 5px;
   color: #333;
   font-size: 1.1em;
@@ -158,5 +252,14 @@ const handleDestinationClick = () => {
 .diary-content p {
   line-height: 1.6;
   color: #666;
+}
+
+.star-rating {
+  font-size: 24px;
+  color: #ccc;
+}
+
+.star-filled {
+  color: gold;
 }
 </style>

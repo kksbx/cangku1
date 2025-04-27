@@ -9,18 +9,24 @@ import org.tinkerhub.offgo.entity.ContentEntity;
 import org.tinkerhub.offgo.entity.ImageEntity;
 import org.tinkerhub.offgo.entity.diary;
 import org.tinkerhub.offgo.mysql_service.Diary_service;
+import org.tinkerhub.offgo.mysql_service.User_service;
 
 import java.io.*;
-import java.awt.*;
-import java.nio.file.Path;
+import java.util.Random;
 
 @RestController
 public class diarycontroller {
     @Autowired
     private Diary_service diaryService;
-
-
-    private static final String IMAGE_STORAGE_DIR = "src/main/resources/static/images/";
+    @Autowired
+    private User_service userService;
+    @RequestMapping("/clean_database")
+    public boolean cleanDatabase() {
+        diaryService.cleanDiaryData();
+        userService.deleteall();
+        return true;
+    }
+    private static final String IMAGE_STORAGE_DIR = "src/main/resources/static/images/diary/";
 
     @RequestMapping("/savediary_withoutimage")
     public boolean savediary_without(@RequestParam String title, @RequestParam String description, @RequestParam String content,@RequestParam int userID) {
@@ -32,9 +38,9 @@ public class diarycontroller {
         return true;
     }
     @RequestMapping("/savediary_withimage")
-    public boolean savediary_with(@RequestParam String title, @RequestParam String description, @RequestParam String content, @RequestParam int userID, @RequestParam int image, @RequestParam int image_num) {
+    public boolean savediary_with(@RequestParam String title, @RequestParam String description, @RequestParam String content, @RequestParam int userID,  @RequestParam int image_num) {
         int contentID = diaryService.find_content_max_id() + 1;
-        ContentEntity contentEntity = new ContentEntity(contentID, "");
+        ContentEntity contentEntity = new ContentEntity(contentID, content);
         diaryService.saveContent(contentEntity);
         int diaryID = diaryService.find_image_max_id() + 1;
         int imageID = diaryService.find_image_max_id() + 1;
@@ -113,6 +119,10 @@ public class diarycontroller {
         diaryService.saveDiary(diary);
         return "success";
     }
+    @RequestMapping("/user/check/{userID}/{diaryID}")
+    public String check(int userID,int diaryID) {
+        return "5";
+    }
     public static byte[] convertImageToByteArray(String imagePath) {
         File imageFile = new File(imagePath);
         try (FileInputStream fis = new FileInputStream(imageFile);
@@ -129,5 +139,63 @@ public class diarycontroller {
             return null;
         }
     }
+
+
+    private String generateRandomContent() {
+        String[] sentences = {
+                "今天天气真好，阳光明媚，心情格外舒畅。",
+                "这次旅行真是一次难忘的经历，看到了许多美丽的风景。",
+                "和朋友们一起度过了愉快的时光，留下了美好的回忆。",
+                "这个地方的美食太好吃了，让人回味无穷。"
+        };
+        Random random = new Random();
+        StringBuilder content = new StringBuilder();
+        for (int i = 0; i < 3; i++) {
+            content.append(sentences[random.nextInt(sentences.length)]).append(" ");
+        }
+        return content.toString();
+    }
+
+    // 模拟生成随机的目的地
+    private String generateRandomDestination() {
+        String[] destinations = {
+                "巴黎", "纽约", "东京", "伦敦", "悉尼"
+        };
+        Random random = new Random();
+        return destinations[random.nextInt(destinations.length)];
+    }
+
+    // 为每张图片生成日记
+    @RequestMapping("/generateDiariesForImages")
+    public String generateDiariesForImages() {
+        File directory = new File(IMAGE_STORAGE_DIR);
+        File[] files = directory.listFiles();
+        for (int i = 1; i <= 94; i++) {
+            String fileName = i + ".jpg";
+            File file = new File(IMAGE_STORAGE_DIR + fileName);
+            if (file.exists() && file.isFile()) {
+                // 生成日记信息
+                int contentID = diaryService.find_content_max_id() + 1;
+                String content = generateRandomContent();
+                ContentEntity contentEntity = new ContentEntity(contentID, content);
+                diaryService.saveContent(contentEntity);
+
+                int diaryID = diaryService.find_image_max_id() + 1;
+                int imageID = diaryService.find_image_max_id() + 1;
+                ImageEntity imageEntity = new ImageEntity(imageID, file.getAbsolutePath());
+                diaryService.saveImage(imageEntity);
+
+                int[] arr = {imageID};
+                String title = "日记 - " + file.getName();
+                String description = "关于 " + file.getName() + " 的日记";
+                int userID = 1; // 假设用户 ID 为 1
+                String destination = generateRandomDestination();
+                diary diary = new diary(diaryID, title, userID, description, contentID, arr);
+                diaryService.saveDiary(diary);
+            }
+        }
+        return "所有图片的日记已生成";
+    }
+
 
 }
